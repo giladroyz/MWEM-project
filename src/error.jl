@@ -15,8 +15,17 @@ Compute mean_squared_error of synthetic data on the query set. Result is not
 differentially private.
 """
 function mean_squared_error(mw::MWState)
+
+    #a = Histogram((mw.synthetic.weights) * mw.real.num_samples, mw.real.num_samples)
+    #b = mw.real_answers * mw.real.num_samples
+
     errors = evaluate(mw.queries, mw.synthetic) - mw.real_answers
-    norm(errors)^2/length(errors)
+    #errors = evaluate(mw.queries, a) - b
+    errors = errors*mw.real.num_samples
+    #println(sum(errors))
+    #println(length(errors))
+    #println()
+    (norm(errors)^2)#/length(errors)
 end
 
 """

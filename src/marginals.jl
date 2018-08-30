@@ -1,4 +1,5 @@
-using PrivateMultiplicativeWeights
+include("../src/PrivateMultiplicativeWeights.jl")
+#using PrivateMultiplicativeWeights
 
 function marginals(d=20, order=3, n=1000)
     data_matrix = rand(0:1, d, n)

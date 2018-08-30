@@ -34,11 +34,12 @@ function evaluate(queries::HistogramQueries, h::Histogram)
 end
 
 function normalize!(h::Histogram)
+    #println(sum(h.weights))
     h.weights /= sum(h.weights)
     h
 end
 
-# if error is > 0, increase weight on positive elements of queries[query] and 
+# if error is > 0, increase weight on positive elements of queries[query] and
 # decrease weight on negative elements. Magnitude of error determines step size.
 function update!(q::HistogramQuery, h::Histogram, error::Float64)
     @simd for j = 1:length(h.weights)
@@ -53,19 +54,19 @@ function initialize(queries::Queries, data::Histogram, ps::MWParameters)
     num_samples = data.num_samples
     if ps.noisy_init
         # Noisy init incurs an additional `epsilon` privacy cost
-        weights = Array(Float64, histogram_length)
-        noise = rand(Laplace(0.0, 1.0/(ps.epsilon*num_samples)), histogram_length)
+        weights = Array{Float64}(histogram_length)
+        noise = rand(Laplace(0.0, 2.0/(ps.epsilon*num_samples)), histogram_length)
         @simd for i = 1:histogram_length
-             @inbounds weights[i] = 
-                 max(data.weights[i] + noise[i] - 1.0/(e*n*ps.epsilon), 0.0)
+             @inbounds weights[i] =
+                 max(data.weights[i] + noise[i], 0)# - 1.0/(e*num_samples*ps.epsilon), 0.0)
         end
         weights /= sum(weights)
-        synthetic = Histogram(0.5 * weights + 0.5/histogram_length)
+        synthetic = Histogram(weights)#0.5 * weights) + 0.5/histogram_length)
     else
         synthetic = Histogram(ones(histogram_length)/histogram_length)
     end
     real_answers = evaluate(queries, data)
-    scale = 2.0/(ps.epsilon*num_samples)
+    scale = (2.0*ps.iterations)/(ps.epsilon*num_samples)
     MWState(data, synthetic, queries, real_answers, Dict{Int, Float64}(), scale)
 end
 

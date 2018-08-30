@@ -1,9 +1,10 @@
-abstract Data
-abstract Query
-abstract Queries
+abstract type Data end
+abstract type Query end
+abstract type Queries end
 
 
-typealias QueryIndex Int
+const QueryIndex = Int
+const Interval = Tuple{Int64, Int64}
 
 
 type MWState
@@ -85,7 +86,7 @@ end
    normalize!(d::Data)
 
 Normalizes data.
-"""   
+"""
 function normalize!(d::Data)
     throw("`normalize!` not implemented for `$(typeof(d))`.")
 end

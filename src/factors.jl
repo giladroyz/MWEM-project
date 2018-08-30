@@ -6,7 +6,7 @@ end
 """
     FactorHistogram
 
-FactorHistogram represents the data as a product of histograms on disjoint 
+FactorHistogram represents the data as a product of histograms on disjoint
 attributes. This corresponds to a distribution where variables in different
 factors are independent.
 """
@@ -15,9 +15,9 @@ type FactorHistogram <: Data
     lookup::Dict{Int, Int}
 end
 
-abstract FactorHistogramQuery <: Query
+abstract type FactorHistogramQuery <: Query end
 
-abstract FactorHistogramQueries <: Queries
+abstract type FactorHistogramQueries <: Queries end
 
 function attributes(q::FactorHistogramQuery)
     throw("`attributes` not implemented for `$(typeof(q))`.")

@@ -26,9 +26,9 @@ Select index of query with largest error after noise addition.
 """
 function noisy_max(mwstate::MWState)
     diffs = mwstate.real_answers - evaluate(mwstate.queries, mwstate.synthetic)
-    # do not select previously measured queries
     diffs[collect(keys(mwstate.measurements))] = 0.0
-    indmax(abs(diffs) + rand(Laplace(0.0, mwstate.scale), length(diffs)))
+    real_index = indmax(abs.(diffs) + rand(Laplace(0.0, mwstate.scale), length(diffs)))
+    real_index
 end
 
 
@@ -65,12 +65,16 @@ function mwem(queries::Queries, data::Data, ps=MWParameters())
     for t = 1:ps.iterations
         time = @elapsed begin
             # select query via noisy max
+            #println(sum(mwstate.synthetic.weights))
             qindex = noisy_max(mwstate)
-            mwstate.measurements[qindex] = 
+            #println(qindex)
+            mwstate.measurements[qindex] =
               mwstate.real_answers[qindex] + rand(Laplace(0.0, mwstate.scale))
 
+            #println(mwstate.measurements[qindex])
+
             # update synthetic data approximation
-            update!(mwstate, qindex)
+            #update!(mwstate, qindex)
 
             # repeatedly update on previously measured queries in random order
             for i = 1:ps.repetitions

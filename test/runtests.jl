@@ -1,3 +1,4 @@
+include("../src/PrivateMultiplicativeWeights.jl")
 using PrivateMultiplicativeWeights
 using Hadamard
 using Base.Test
