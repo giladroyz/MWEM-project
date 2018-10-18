@@ -14,8 +14,11 @@ function MWParameters(; epsilon=1.0,
                         iterations=10,
                         repetitions=10,
                         noisy_init=false,
-                        verbose=false)
-    MWParameters(epsilon, iterations, repetitions, noisy_init, verbose)
+                        verbose=false,
+                        init_budget=0.05, #
+                        noisy_max_budget=0.5 #
+                        )
+    MWParameters(epsilon, iterations, repetitions, noisy_init, verbose, init_budget, noisy_max_budget)
 end
 
 
@@ -24,10 +27,10 @@ end
 
 Select index of query with largest error after noise addition.
 """
-function noisy_max(mwstate::MWState)
+function noisy_max(mwstate::MWState, noisy_max_budget::Float64)
     diffs = mwstate.real_answers - evaluate(mwstate.queries, mwstate.synthetic)
-    diffs[collect(keys(mwstate.measurements))] = 0.0
-    real_index = indmax(abs.(diffs) + rand(Laplace(0.0, mwstate.scale), length(diffs)))
+    diffs[collect(keys(mwstate.measurements))] .= 0.0
+    real_index = argmax(abs.(diffs) + rand(Laplace(0.0, mwstate.scale/noisy_max_budget), length(diffs)))
     real_index
 end
 
@@ -39,7 +42,7 @@ Perform multiplicative weights update with query given by `qindex`.
 """
 function update!(mwstate::MWState, qindex::QueryIndex)
     query = get(mwstate.queries, qindex)
-    error = (mwstate.measurements[qindex] - evaluate(query, mwstate.synthetic))
+    error = mwstate.measurements[qindex] - evaluate(query, mwstate.synthetic)
     update!(query, mwstate.synthetic, error)
 end
 
@@ -65,13 +68,9 @@ function mwem(queries::Queries, data::Data, ps=MWParameters())
     for t = 1:ps.iterations
         time = @elapsed begin
             # select query via noisy max
-            #println(sum(mwstate.synthetic.weights))
-            qindex = noisy_max(mwstate)
-            #println(qindex)
+            qindex = noisy_max(mwstate, ps.noisy_max_budget)
             mwstate.measurements[qindex] =
-              mwstate.real_answers[qindex] + rand(Laplace(0.0, mwstate.scale))
-
-            #println(mwstate.measurements[qindex])
+              mwstate.real_answers[qindex] + rand(Laplace(0.0, mwstate.scale/(1-ps.noisy_max_budget)))
 
             # update synthetic data approximation
             #update!(mwstate, qindex)

@@ -2,6 +2,8 @@
 
 #using PrivateMultiplicativeWeights
 
+using LinearAlgebra
+
 """
 return the lower bound for the "Query andWorkload Error"
     according to the article:
@@ -10,7 +12,7 @@ return the lower bound for the "Query andWorkload Error"
 function getLowerBound(queries::HistogramQueries, eps, delta)
     m,n = size(queries.queries)
     P_eps_delta = (2*log2(2/delta))/(eps^2)
-    singular_values = svdfact(queries.queries)[:S]
+    singular_values = svd(queries.queries).S
     ss_svd = (1/n)*(sum(singular_values)^2)
 
     ss_svd*P_eps_delta
@@ -31,7 +33,7 @@ function getLowerBound(queries::RangeQueries, eps, delta)
 
     m,n = size(query_matrix)
     P_eps_delta = (2*log2(2/delta))/(eps^2)
-    singular_values = svdfact(query_matrix)[:S]
+    singular_values = svd(query_matrix).S
     ss_svd = (1/n)*(sum(singular_values)^2)
 
     ss_svd*P_eps_delta

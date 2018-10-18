@@ -21,11 +21,11 @@ function mean_squared_error(mw::MWState)
 
     errors = evaluate(mw.queries, mw.synthetic) - mw.real_answers
     #errors = evaluate(mw.queries, a) - b
-    errors = errors*mw.real.num_samples
+    #errors = errors*mw.synthetic.num_samples
     #println(sum(errors))
     #println(length(errors))
     #println()
-    (norm(errors)^2)#/length(errors)
+    (norm(errors)^2)/length(errors)
 end
 
 """
@@ -38,9 +38,16 @@ function kl_divergence(a::Array{Float64, 1}, b::Array{Float64, 1})
     for i = 1 : length(a)
         @inbounds ai = a[i]
         @inbounds bi = b[i]
-        if ai > 0
+        if ai > 0 && bi > 0
             r += ai * log(2, ai / bi)
         end
     end
     r
+end
+
+function kl_divergence_error(mw::MWState)
+
+    #error = kl_divergence(mw.synthetic.weights, mw.real.weights)
+    error = kl_divergence(mw.real.weights, mw.synthetic.weights)
+    error
 end

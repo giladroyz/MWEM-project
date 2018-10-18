@@ -4,7 +4,7 @@
 Histogram represents the data as a vector where each coordinate corresponds to
 one element of the data universe. This is the default representation for MWEM.
 """
-type Histogram <: Data
+mutable struct Histogram <: Data
     weights::Array{Float64, 1}
     num_samples::Int64
 end
@@ -13,11 +13,11 @@ function Histogram(weights::Array{Float64, 1})
     Histogram(weights, 0)
 end
 
-type HistogramQuery <: Query
+struct HistogramQuery <: Query
     weights::Array{Float64, 1}
 end
 
-type HistogramQueries <: Queries
+struct HistogramQueries <: Queries
     queries::Array{Float64, 2}
 end
 
@@ -54,19 +54,21 @@ function initialize(queries::Queries, data::Histogram, ps::MWParameters)
     num_samples = data.num_samples
     if ps.noisy_init
         # Noisy init incurs an additional `epsilon` privacy cost
-        weights = Array{Float64}(histogram_length)
-        noise = rand(Laplace(0.0, 2.0/(ps.epsilon*num_samples)), histogram_length)
+        weights = zeros(Float64, histogram_length)
+        #noise = rand(Laplace(0.0, 2.0/(ps.epsilon*num_samples)), histogram_length)
+        noise = rand(Laplace(0.0, 1/num_samples*ps.epsilon*ps.init_budget), histogram_length)
         @simd for i = 1:histogram_length
              @inbounds weights[i] =
                  max(data.weights[i] + noise[i], 0)# - 1.0/(e*num_samples*ps.epsilon), 0.0)
         end
         weights /= sum(weights)
         synthetic = Histogram(weights)#0.5 * weights) + 0.5/histogram_length)
+        ps.epsilon = (1-ps.init_budget)*ps.epsilon
     else
         synthetic = Histogram(ones(histogram_length)/histogram_length)
     end
     real_answers = evaluate(queries, data)
-    scale = (2.0*ps.iterations)/(ps.epsilon*num_samples)
+    scale = (ps.iterations)/(ps.epsilon*num_samples)
     MWState(data, synthetic, queries, real_answers, Dict{Int, Float64}(), scale)
 end
 
@@ -81,13 +83,13 @@ end
 Create histogram representation from tabular data.
 """
 function Histogram(table::Tabular)
-    d, n = size(table.data)
-    histogram = zeros(2^d)
+    n, d = size(table.data)
+    histogram = zeros(Float64,2^d)
     for i = 1:n
         num = 0
-        x = vec(table.data[:, i])
-        for i = 1:d
-            num += convert(Int64, x[d-i+1]) * 2^(i-1)
+        x = vec(table.data[i, :])
+        for j = 1:d
+            num += convert(Int64, x[d-j+1]) * 2^(j-1)
         end
         histogram[num+1] += 1.0
     end

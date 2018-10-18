@@ -113,8 +113,8 @@ function covertData(data::DataFrames.DataFrame)
 
     if length(size(data)) == 2
         for i=1:cols
-        a = Array(collect(data[:,i]))
-        data_matrix[1:length(a),i] = a/Float64(maximum(a))
+            a = Array(collect(data[i]))
+            data_matrix[1:length(a),i] = a/Float64(maximum(a))
         end
     else
         a = Array(collect(data))

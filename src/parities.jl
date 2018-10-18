@@ -4,7 +4,7 @@
 Implementation of parity queries using Fast Hadamard Walsh Transform and Gosper
 iteration.
 """
-type Parities <: Queries
+struct Parities <: Queries
     dimension::Int
     order::Int
     idx::Array{Int, 1}
@@ -16,7 +16,7 @@ end
 Returns hadamard basis vector given by `index`.
 """
 function hadamard_basis_vector(index::Int, dimension::Int)
-    hadamard = Array(Float64, 1 << dimension)
+    hadamard = zeros(Float64, 1 << dimension)
     hadamard[1] = 1.0
     for i = 0:dimension-1
         sign = (index & (1 << i)) > 0 ? -1.0 : 1.0
@@ -41,6 +41,10 @@ function get(queries::Parities, i::Int)
     HistogramQuery(hadamard_basis_vector(queries.idx[i]-1, queries.dimension))
 end
 
+function get_parities(queries::Parities, i::Int)
+    HistogramQuery(hadamard_basis_vector(queries.idx[i]-1, queries.dimension))
+end
+
 function evaluate(queries::Parities, h::Histogram)
     2^queries.dimension * fwht_natural(h.weights)[queries.idx]
 end
@@ -50,7 +54,7 @@ function initialize(queries::Parities, data::Tabular, ps::MWParameters)
 end
 
 
-type FactorParity <: FactorHistogramQuery
+struct FactorParity <: FactorHistogramQuery
     attributes::Array{Int, 1}
 end
 
@@ -59,7 +63,7 @@ end
 
 Implementation of parity queries over factored histograms.
 """
-type FactorParities <: FactorHistogramQueries
+struct FactorParities <: FactorHistogramQueries
     queries::Array{FactorParity, 1}
 end
 
@@ -71,7 +75,7 @@ function restrict(q::FactorParity, attributes::Array{Int, 1})
     idx = 0
     d = length(attributes)
     for a in q.attributes
-        i = findfirst(attributes, a)
+        i = findfirst(x -> x==a, attributes)#findfirst(attributes, a)
         idx += 2^(d-i)
     end
     HistogramQuery(hadamard_basis_vector(idx, d))
@@ -100,7 +104,7 @@ function evaluate(q::FactorParity, table::Tabular)
 end
 
 function evaluate(qs::FactorParities, table::Tabular)
-    evals = Array(Float64, length(qs.queries))
+    evals = zeros(Float64, length(qs.queries))
     @simd for i in 1:length(qs.queries)
         @inbounds evals[i] = evaluate(qs.queries[i], table)
     end

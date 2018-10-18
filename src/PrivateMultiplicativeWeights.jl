@@ -1,10 +1,15 @@
 module PrivateMultiplicativeWeights
 
 using
-    Distributions.Laplace,
-    Distributions.wsample,
+    Distributions: Laplace, wsample
+using
+    Printf,
     Hadamard,
-    Iterators.subsets
+    LinearAlgebra,
+    Random,
+    IterTools,#.subsets
+    Statistics
+    #Iterators.subsets
 
 export
     mwem,
@@ -18,14 +23,20 @@ export
     Parities,
     FactorParities,
     maximum_error,
+    kl_divergence_error,
     mean_squared_error,
     queriesMatrix,
+    gosper,
+    #get_parities,
+    evaluate,
+    get_parities,
 #    getLowerBound,
     Interval,
     get_query_vector_from_interval
 
 import
-    Base: start, next, done, eltype, length
+    Base: eltype, length, iterate
+#Base: start, next, done, eltype, length
 
 include("interface.jl")
 include("histogram.jl")

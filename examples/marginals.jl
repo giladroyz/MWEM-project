@@ -1,5 +1,6 @@
-include("../src/PrivateMultiplicativeWeights.jl")
-#using PrivateMultiplicativeWeights
+#include("../src/PrivateMultiplicativeWeights.jl")
+push!(LOAD_PATH, abspath("./src/"))
+using PrivateMultiplicativeWeights
 
 function marginals(d=20, order=3, n=1000)
     data_matrix = rand(0:1, d, n)
@@ -16,7 +17,7 @@ end
 function range_queries()
     histogram = vcat(zeros(100), ones(100), zeros(100))
     data = Histogram(histogram, 100)
-    mwem(RangeQueries(300), data, MWParameters(repetitions=100, verbose=true))
+    mwem(SeriesRangeQueries(300), data, MWParameters(repetitions=100, verbose=true))
 end
 
 print("Elapsed time: ", @elapsed marginals())

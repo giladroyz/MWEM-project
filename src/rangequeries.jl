@@ -4,7 +4,7 @@
 Range query is a type of histogram query corresponding to an
 intervals over the domain i -> j (1 <= i <= j <= domain).
 """
-type RangeQuery <: Query
+struct RangeQuery <: Query
     interval::Interval
     domain::Int # the domain size
 end
@@ -15,7 +15,7 @@ end
 Range queries are type of histogram query corresponding to
 intervals over the domain.
 """
-type RangeQueries <: Queries
+struct RangeQueries <: Queries
     intervals::Array{Interval, 1}
     domain::Int # the domain size
 end
@@ -26,7 +26,7 @@ end
 Range queries are type of histogram query corresponding to all possible
 intervals over the domain that start with the first element.
 """
-type SeriesRangeQueries <: Queries
+struct SeriesRangeQueries <: Queries
     domain::Int # the domain size
 end
 
@@ -39,7 +39,7 @@ function get_query_vector_from_interval(interval::Interval, domain::Int64)
     query_vector = zeros(domain)
     start_index, end_index = interval
     #print(start_index, end_index)
-    query_vector[start_index : end_index] = 1
+    query_vector[start_index : end_index] .= 1
     query_vector
     #println(query_vector)
 end
@@ -90,7 +90,7 @@ Evaluate all the given range queries on the given histogram.
 function evaluate(queries::RangeQueries, h::Histogram)
     @assert queries.domain == length(h.weights)
     num_queries = length(queries.intervals)
-    answers = Array{Float64}(num_queries)
+    answers = Array{Float64}(undef, num_queries)
     @simd for j=1:num_queries
         @inbounds answers[j] = evaluate(get(queries, j), h)
     end
@@ -104,7 +104,7 @@ Evaluate all range queries on the given histogram.
 """
 function evaluate(queries::SeriesRangeQueries, h::Histogram)
     @assert queries.domain == length(h.weights)
-    answers = Array{Float64}(queries.domain)
+    answers = zeros(Float64, queries.domain)
     running_sum = 0#-1.0
     @simd for j=1:queries.domain
         @inbounds running_sum += h.weights[j]#2.0 * h.weights[j]

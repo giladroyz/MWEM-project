@@ -1,4 +1,4 @@
-immutable GosperIterator
+struct GosperIterator
     n::Int64
     k::Int64
 end
@@ -37,3 +37,18 @@ function next(it::GosperIterator, state::GosperState)
 end
 
 done(it::GosperIterator, state::GosperState) = state[1] > state[2]
+
+function iterate(it::GosperIterator, state::GosperState = start(it))
+
+    if state[1] > state[2]
+        return nothing
+    end
+
+        # Gosper's hack: Finds the next smallest number with exactly k bits
+    # set to 1 in its binary representation.
+    o = state[1]
+    u = state[1] & -state[1]
+    v = u + state[1]
+    y = v + (div(xor(v, state[1]), u) >> 2)
+    return o, (y, state[2])
+end
