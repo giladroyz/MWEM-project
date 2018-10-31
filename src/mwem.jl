@@ -73,7 +73,7 @@ function mwem(queries::Queries, data::Data, ps=MWParameters())
               mwstate.real_answers[qindex] + rand(Laplace(0.0, mwstate.scale/(1-ps.noisy_max_budget)))
 
             # update synthetic data approximation
-            #update!(mwstate, qindex)
+            update!(mwstate, qindex)
 
             # repeatedly update on previously measured queries in random order
             for i = 1:ps.repetitions

@@ -155,7 +155,7 @@ function getDomainDim(data::AbstractArray)
     domain_dim = zeros(Int64, cols)
 
     if cols == 1
-        domain_dim[i] = length(countmemb(data[:]))
+        domain_dim[1] = length(countmemb(data[:]))
     else
         for i=1:cols
             domain_dim[i] = length(countmemb(data[:,i]))
@@ -203,9 +203,16 @@ function getDomainDim2(data::DataFrames.DataFrame)
     domain_dim = zeros(Int64, cols)
 
     for i=1:cols
-        domain_dim[i] = maximum(Array(collect(data[i])))
+        domain_dim[i] = maximum(Array(collect(data[i])))+1
     end
 
     Tuple(domain_dim)
+
+end
+
+
+function getMapping(nomain_size::Int64, )
+
+    
 
 end
