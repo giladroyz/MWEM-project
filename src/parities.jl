@@ -46,7 +46,8 @@ function get_parities(queries::Parities, i::Int)
 end
 
 function evaluate(queries::Parities, h::Histogram)
-    2^queries.dimension * fwht_natural(h.weights)[queries.idx]
+    #2^queries.dimension * fwht_natural(h.weights)[queries.idx]
+    fwht_natural(h.weights)[queries.idx]
 end
 
 function initialize(queries::Parities, data::Tabular, ps::MWParameters)

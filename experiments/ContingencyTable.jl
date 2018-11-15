@@ -10,6 +10,8 @@ using CSV
 
 gr()
 
+
+
 function run_test(data::Histogram, epsilon::Float64, queries::Parities,
     number_of_samples::Int, number_iterations::Int, noisy_init::Bool)
 
