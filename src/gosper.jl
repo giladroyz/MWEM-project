@@ -26,17 +26,17 @@ function start(it::GosperIterator)
     (2^(it.k) - 1, 2^(it.n) -1)
 end
 
-function next(it::GosperIterator, state::GosperState)
-    # Gosper's hack: Finds the next smallest number with exactly k bits
-    # set to 1 in its binary representation.
-    o = state[1]
-    u = state[1] & -state[1]
-    v = u + state[1]
-    y = v + (div(v $ state[1], u) >> 2)
-    return o, (y, state[2])
-end
+# function next(it::GosperIterator, state::GosperState)
+#     # Gosper's hack: Finds the next smallest number with exactly k bits
+#     # set to 1 in its binary representation.
+#     o = state[1]
+#     u = state[1] & -state[1]
+#     v = u + state[1]
+#     y = v + (div(v $ state[1], u) >> 2)
+#     return o, (y, state[2])
+# end
 
-done(it::GosperIterator, state::GosperState) = state[1] > state[2]
+# done(it::GosperIterator, state::GosperState) = state[1] > state[2]
 
 function iterate(it::GosperIterator, state::GosperState = start(it))
 

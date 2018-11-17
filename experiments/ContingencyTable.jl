@@ -24,7 +24,7 @@ function run_test(data::Histogram, epsilon::Float64, queries::Parities,
     mwem_error
 end
 
-function run_full_test(data::DataFrames.DataFrame, epsilons::Array{Float64}, number_of_tests::Int,
+function run_full_test(contingencyTable::Histogram, epsilons::Array{Float64}, number_of_tests::Int,
     order_of_parities::Int, mwem_iterations::Int)
 
     @assert number_of_tests >= 1 "number of tests must be >= 1"
@@ -32,20 +32,7 @@ function run_full_test(data::DataFrames.DataFrame, epsilons::Array{Float64}, num
     @assert order_of_parities >= 1 "order of the parity queries must be >= 1"
     @assert mwem_iterations >= 1 "mwem iterations must be >= 1"
 
-    number_of_samples = size(data)[1]
-
-    # Tuple with length = number of columns, and each entry has the number of elements in the column
-    domain_dim = getDomainDim2(data)
-
-    # the normalized data in a matrix
-    data_matrix = covertData(data)
-
-    #println(size(data_matrix))
-
-    barak_alg_data = Tabular(data_matrix)
-    data_histogram = Histogram(barak_alg_data)
-
-    println(length(domain_dim))
+    number_of_samples = contingencyTable.num_samples
 
     queries = Parities(length(domain_dim), order_of_parities)
 
@@ -57,7 +44,7 @@ function run_full_test(data::DataFrames.DataFrame, epsilons::Array{Float64}, num
         println("test: ", test)
 
         for (e_index, e) in enumerate(epsilons)
-            mwem_error = run_test(data_histogram, e, queries, number_of_samples, mwem_iterations, false)
+            mwem_error = run_test(contingencyTable, e, queries, number_of_samples, mwem_iterations, false)
             mwem_errors[e_index, test] = mwem_error
         end
     end
@@ -184,4 +171,84 @@ function main3()
 
 end
 
-main()
+
+function main4()
+
+    dimension = 8
+    idx = [1,3,5,7]
+    inx_out = []
+    #bii = BinaryItr(dimension, idx)
+    for s in BinaryItr(dimension, idx)
+        push!(inx_out, s)
+    end
+
+    print(inx_out)
+
+end
+
+function norm_1_with_indices(alpha::Int64)
+
+    @assert alpha >= 0
+
+    count = 0
+    index = 1
+    idx = []
+    while alpha > 0
+        if alpha % 2 == 1
+            count += 1
+            push!(idx, index)
+        end
+        alpha >>= 1
+        index += 1
+    end
+    count, Array{Int64}(idx)
+end
+
+function culc_marginal(queries::Parities, h::Histogram, alpha::Int64)
+
+    alpha_norm1, alpha_indices = norm_1_with_indices(alpha)
+
+    inverse_alpha = setdiff(collect(1:queries.dimension), alpha_indices)
+
+    marginal = zeros(Float64, 2^alpha_norm1)
+
+    for (beta_index, beta) in enumerate(BinaryItr(queries.dimension, alpha))
+        beta_norm1, beta_indices = norm_1_with_indices(beta)
+        temp_sum = 0
+        for gamma in BinaryItr(queries.dimension, inverse_alpha, beta)
+            temp_sum += h.weights[gamma+1]
+        end
+        marginal[beta_index] = temp_sum
+    end
+
+    marginal
+
+end
+
+function main5()
+
+    nltcs = CSV.read("data/nltcs_new_csv_2.csv")
+    dropmissing!(nltcs)
+
+    #println(nltcs[1])
+
+    contTable = readContingencyTable(nltcs[[:1, :2]], 16)
+
+    number_of_samples = size(contTable)[1]
+
+    hist = Histogram(contTable, number_of_samples)
+
+    queries = Parities(16, 3)
+
+    #print(hist.weights[1:10])
+    #coeff = fourierCoefficients(queries, hist)
+    
+    time2 = @elapsed culc_marginal(queries, hist, 7)
+    time1 = @elapsed calculateMarginal(queries, hist, 7)
+
+    println(time1)
+    println(time2)
+
+end
+
+main5()

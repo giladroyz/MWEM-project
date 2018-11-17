@@ -27,12 +27,16 @@ export
     mean_squared_error,
     queriesMatrix,
     gosper,
-    #get_parities,
-    evaluate,
     get_parities,
+    evaluate,
 #    getLowerBound,
+    
+
     Interval,
-    get_query_vector_from_interval
+    get_query_vector_from_interval,
+    BinaryItr,
+    fourierCoefficients,
+    calculateMarginal
 
 import
     Base: eltype, length, iterate
@@ -43,6 +47,7 @@ include("histogram.jl")
 include("rangequeries.jl")
 include("factors.jl")
 include("gosper.jl")
+include("BinaryIterator.jl")
 include("parities.jl")
 include("error.jl")
 include("mwem.jl")
