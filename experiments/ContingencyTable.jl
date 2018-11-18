@@ -10,7 +10,11 @@ using CSV
 
 gr()
 
+function Barak_et_al_algorithm(contingencyTable::Histogram, queries::Parities, epsilon::Float64)
 
+    
+
+end
 
 function run_test(data::Histogram, epsilon::Float64, queries::Parities,
     number_of_samples::Int, number_iterations::Int, noisy_init::Bool)
@@ -24,17 +28,17 @@ function run_test(data::Histogram, epsilon::Float64, queries::Parities,
     mwem_error
 end
 
-function run_full_test(contingencyTable::Histogram, epsilons::Array{Float64}, number_of_tests::Int,
-    order_of_parities::Int, mwem_iterations::Int)
+function run_full_test(contingencyTable::Histogram, queries::Parities, epsilons::Array{Float64}, 
+    number_of_tests::Int, mwem_iterations::Int)
 
     @assert number_of_tests >= 1 "number of tests must be >= 1"
     @assert length(epsilons) >= 1 "must be at least one epsilon"
-    @assert order_of_parities >= 1 "order of the parity queries must be >= 1"
+    #@assert order_of_parities >= 1 "order of the parity queries must be >= 1"
     @assert mwem_iterations >= 1 "mwem iterations must be >= 1"
 
     number_of_samples = contingencyTable.num_samples
 
-    queries = Parities(length(domain_dim), order_of_parities)
+    #queries = Parities(length(domain_dim), order_of_parities)
 
     mwem_errors = zeros(length(epsilons), number_of_tests) # the error vector of mwem
     #svd_errors = zeros(length(epsilons), number_of_tests) # the error vector of svd
@@ -251,4 +255,38 @@ function main5()
 
 end
 
-main5()
+function main6()
+
+    ### load datasets ###
+    nltcs = CSV.read("data/nltcs_new_csv_2.csv")
+    #####################
+    
+    ### drop rows with missing values
+    dropmissing!(nltcs)
+    #####################
+
+
+    #println(nltcs[1])
+
+    epsilons = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.06, 0.07, 0.08, 0.09, 0.1]
+    order = 3
+    dimension = 16
+    mwem_iterations = 10
+    number_of_tests = 100
+
+    contTable = readContingencyTable(nltcs[[:1, :2]], dimension)
+
+    number_of_samples = size(contTable)[1]
+
+    hist = Histogram(contTable, number_of_samples)
+
+    queries = Parities(dimension, order)
+    
+    ## nltc
+    println("nltcs")
+    mwem_errors = run_full_test(hist, queries, epsilons, number_of_tests, mwem_iterations)
+    write_results("nltcs_result_new.txt", mwem_errors, epsilons)
+
+end
+
+main6()
