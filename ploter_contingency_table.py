@@ -14,7 +14,7 @@ from IPython.display import Image
 
 def plot_experiment(file_name):
     
-    files_titiles = {'nltc_result.txt' : 'NLTCS'}
+    files_titiles = {'nltcs_result_new.txt' : 'NLTCS'}
     
     name_without_ext = file_name.split('.')[-2]
 
@@ -78,7 +78,7 @@ def plot_experiment(file_name):
     
 def main():
     
-    files = ['nltc_result.txt']
+    files = ['nltcs_result_new.txt']
     for file in files:
         plot_experiment(file)
     
