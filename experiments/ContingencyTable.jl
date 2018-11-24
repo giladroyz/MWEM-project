@@ -4,15 +4,81 @@ push!(LOAD_PATH, abspath("./src/"))
 
 using PrivateMultiplicativeWeights
 using Distributions
+using Hadamard
+using LinearAlgebra
 using Plots
 using DataFrames
 using CSV
 
 gr()
 
+function marginals(queries::Parities, hist::Histogram)
+    """
+    calculate the marginals defined by queries.idx (every index is a number in {0,1}^queries.dimension)
+    params:
+        queries: a Parity with parameters (dimension, order, indices of the marginals)
+        hist: a histogram containing Contingency Table.
+    return:
+
+    """
+
+    marginalArray = zeros(Float64, length(queries.idx))
+
+    for (i,beta) in enumerate(queries.idx)
+        marginalArray[i] = calculateMarginal(queries, hist, beta)
+    end
+
+end
+
+function downwordClosure(binaryNumbers, dimension)
+
+    downwordClosure = Set(zeros(Int64, 1))
+
+    for beta in binaryNumbers
+        for alpha in BinaryItr(dimension, beta)
+            push!(downwordClosure, alpha+1)
+        end
+    end
+
+    collect(downwordClosure)# + ones(Int64, length(downwordClosure))
+
+end
+
 function Barak_et_al_algorithm(contingencyTable::Histogram, queries::Parities, epsilon::Float64)
 
-    
+    downwordClosure = downwordClosure(queries.idx, queries.dimension)
+
+    queries_old = queries
+
+    queries = Parities(queries.dimension, queries.order, downwordClosure)
+
+    laplaceNoise = (2*length(queries.idx))/(epsilon*2^(queries.dimension/2))
+
+    fourierCoeffs = evaluate(queries, contingencyTable)/2^(queries.dimension/2)
+    noisyFourierCoeffs = fourierCoeffs + rand(Laplace(0.0, laplaceNoise), length(fourierCoeffs))
+
+    noisyFourierCoeffs[1] += norm(fourierCoeffs - noisyFourierCoeffs, 1)
+
+    newTable = Histogram(contingencyTable.weights[:], contingencyTable.num_samples)
+
+    a = zeros(Float64, 2^queries.dimension)
+
+    for i in 1:length(queries.idx)
+        a += get_parities(queries, i).weights*(noisyFourierCoeffs[i]-fourierCoeffs[i])
+    end
+
+    newTable.weights += a/2^(queries.dimension/2)
+    newTable.weights = Array{Float64}([max(x,0) for x in newTable.weights])
+
+    println(contingencyTable.weights[1:10])
+    println(newTable.weights[1:10])
+
+    println(kl_divergence(newTable.weights, contingencyTable.weights)/newTable.num_samples)
+    println(kl_divergence(contingencyTable.weights, newTable.weights)/newTable.num_samples)
+
+
+
+    newTable
 
 end
 
@@ -21,9 +87,7 @@ function run_test(data::Histogram, epsilon::Float64, queries::Parities,
 
     mw = mwem(queries, data,
         MWParameters(epsilon=epsilon, iterations=number_iterations, noisy_init=noisy_init))
-        #println(sum(mw.real.weights))
-        #println(sum(mw.synthetic.weights))
-    mwem_error = kl_divergence_error(mw)#mean_squared_error(mw)*(number_of_samples^2)
+    mwem_error = kl_divergence_error(mw)
     
     mwem_error
 end
@@ -33,15 +97,12 @@ function run_full_test(contingencyTable::Histogram, queries::Parities, epsilons:
 
     @assert number_of_tests >= 1 "number of tests must be >= 1"
     @assert length(epsilons) >= 1 "must be at least one epsilon"
-    #@assert order_of_parities >= 1 "order of the parity queries must be >= 1"
     @assert mwem_iterations >= 1 "mwem iterations must be >= 1"
 
     number_of_samples = contingencyTable.num_samples
 
-    #queries = Parities(length(domain_dim), order_of_parities)
-
     mwem_errors = zeros(length(epsilons), number_of_tests) # the error vector of mwem
-    #svd_errors = zeros(length(epsilons), number_of_tests) # the error vector of svd
+    barak_errors = zeros(length(epsilons), number_of_tests) # the error vector of svd
 
     for test=1:number_of_tests
 
@@ -50,6 +111,7 @@ function run_full_test(contingencyTable::Histogram, queries::Parities, epsilons:
         for (e_index, e) in enumerate(epsilons)
             mwem_error = run_test(contingencyTable, e, queries, number_of_samples, mwem_iterations, false)
             mwem_errors[e_index, test] = mwem_error
+            #barak_error = 
         end
     end
 
@@ -268,7 +330,7 @@ function main6()
 
     #println(nltcs[1])
 
-    epsilons = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.06, 0.07, 0.08, 0.09, 0.1]
+    epsilons = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     order = 3
     dimension = 16
     mwem_iterations = 10
@@ -276,7 +338,7 @@ function main6()
 
     contTable = readContingencyTable(nltcs[[:1, :2]], dimension)
 
-    number_of_samples = size(contTable)[1]
+    number_of_samples = sum(contTable)#size(contTable)[1]
 
     hist = Histogram(contTable, number_of_samples)
 
@@ -284,8 +346,9 @@ function main6()
     
     ## nltc
     println("nltcs")
-    mwem_errors = run_full_test(hist, queries, epsilons, number_of_tests, mwem_iterations)
-    write_results("nltcs_result_new.txt", mwem_errors, epsilons)
+    Barak_et_al_algorithm(hist, queries, epsilons[1]/10)#epsilons[1])
+    #mwem_errors = run_full_test(hist, queries, epsilons, number_of_tests, mwem_iterations)
+    #write_results("nltcs_result_new.txt", mwem_errors, epsilons)
 
 end
 

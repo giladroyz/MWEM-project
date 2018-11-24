@@ -39,6 +39,12 @@ function normalize!(h::Histogram)
     h
 end
 
+function normalize_hist!(h::Histogram)
+    #println(sum(h.weights))
+    h.weights /= sum(h.weights)
+    h
+end
+
 # if error is > 0, increase weight on positive elements of queries[query] and
 # decrease weight on negative elements. Magnitude of error determines step size.
 function update!(q::HistogramQuery, h::Histogram, error::Float64)

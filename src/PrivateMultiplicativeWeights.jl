@@ -24,19 +24,23 @@ export
     FactorParities,
     maximum_error,
     kl_divergence_error,
+    kl_divergence,
     mean_squared_error,
     queriesMatrix,
     gosper,
     get_parities,
     evaluate,
+    get,
 #    getLowerBound,
     
+    normalize_hist!,
 
     Interval,
     get_query_vector_from_interval,
     BinaryItr,
     fourierCoefficients,
-    calculateMarginal
+    calculateMarginal,
+    hadamard_basis_vector
 
 import
     Base: eltype, length, iterate

@@ -41,12 +41,15 @@ function get(queries::Parities, i::Int)
     HistogramQuery(hadamard_basis_vector(queries.idx[i]-1, queries.dimension))
 end
 
+function get_parities(queries::Parities, i::Int)
+    HistogramQuery(hadamard_basis_vector(queries.idx[i]-1, queries.dimension))
+end
+
 function evaluate(queries::Parities, h::Histogram)
     2^queries.dimension * fwht_natural(h.weights)[queries.idx]
 end
 
 function fourierCoefficients(queries::Parities, h::Histogram)
-    #2^queries.dimension * fwht_natural(h.weights)[queries.idx]
     2^queries.dimension * fwht_natural(h.weights)
 end
 

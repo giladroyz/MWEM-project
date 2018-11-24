@@ -224,7 +224,7 @@ function readContingencyTable(data::DataFrames.DataFrame, dimension::Int64)
     for i in 1:n
         dig = digits(data[[:1]][1][i], base = 10)
         index = sum([dig[k]*2^(k-1) for k=1:length(dig)])
-        hist[index] = data[[:2]][1][i]
+        hist[index] += data[[:2]][1][i]
     end
 
     hist
