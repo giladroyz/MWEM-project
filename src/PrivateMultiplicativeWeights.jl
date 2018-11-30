@@ -39,7 +39,7 @@ export
     complete_way_marginals_indices,
     fourierCoefficients,
     calculateMarginal,
-    Marginals
+    Marginals,
 
     get_query_vector_from_interval,
     hadamard_basis_vector

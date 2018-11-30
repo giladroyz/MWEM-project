@@ -107,7 +107,8 @@ function Tabular(histogram::Histogram, n::Int)
     idx = wsample(collect(0:N-1), histogram.weights, n)
     data_matrix = zeros(d, n)
     for i = 1:n
-        data_matrix[:, i] = reverse(digits(idx[i], 2, d))
+        #println(idx[i], 2, d)
+        data_matrix[:, i] = reverse(digits(idx[i], base = 2, pad = d))
     end
     Tabular(data_matrix)
 end

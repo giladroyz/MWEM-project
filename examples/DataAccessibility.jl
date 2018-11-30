@@ -152,3 +152,23 @@ function recreateDataset(histogram::Array{Float64, 1}, mappings::Array, domains_
     df
 
 end
+
+function readContingencyTable(data::DataFrames.DataFrame, dimension::Int64)
+
+    @assert length(size(data)) == 2
+
+    n,temp = size(data)
+
+    @assert temp == 2
+    @assert n > 0
+
+    hist = zeros(Float64, 2^dimension)
+
+    for i in 1:n
+        dig = digits(data[[:1]][1][i], base = 10)
+        index = sum([dig[k]*2^(k-1) for k=1:length(dig)])
+        hist[index] += data[[:2]][1][i]
+    end
+
+    hist
+end

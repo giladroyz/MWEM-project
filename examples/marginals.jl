@@ -1,4 +1,3 @@
-#push!(LOAD_PATH, abspath("./src/"))
 using PrivateMultiplicativeWeights
 
 function marginals(d=20, order=3, n=1000)

@@ -32,7 +32,7 @@ end
 
 function downwordClosure(binaryNumbers, dimension)
 
-    downwordClosure = Set(zeros(Int64, 1))
+    downwordClosure = Set(zeros(Int64, 0))
 
     for beta in binaryNumbers
         for alpha in BinaryItr(dimension, beta)
@@ -46,11 +46,11 @@ end
 
 function Barak_et_al_algorithm(contingencyTable::Histogram, queries::Parities, epsilon::Float64)
 
-    downClosure = downwordClosure(queries.idx, queries.dimension)
+    downClosure = complete_way_marginals_indices(queries.order, queries.dimension)#downwordClosure(queries.idx, queries.dimension)
 
     queries_old = queries
 
-    queries = Parities(queries.dimension, queries.order, downwordClosure)
+    queries = Parities(queries.dimension, queries.order, downClosure)
 
     laplaceNoise = (2*length(queries.idx))/(epsilon*2^(queries.dimension/2))
 
@@ -64,7 +64,7 @@ function Barak_et_al_algorithm(contingencyTable::Histogram, queries::Parities, e
     a = zeros(Float64, 2^queries.dimension)
 
     for i in 1:length(queries.idx)
-        a += get(queries, i).weights*(noisyFourierCoeffs[i]-fourierCoeffs[i])
+        a += get_parities(queries, i).weights*(noisyFourierCoeffs[i]-fourierCoeffs[i])
     end
 
     newTable.weights += a/2^(queries.dimension/2)
@@ -73,8 +73,8 @@ function Barak_et_al_algorithm(contingencyTable::Histogram, queries::Parities, e
     #println(contingencyTable.weights[1:10])
     #println(newTable.weights[1:10])
 
-    println(kl_divergence(newTable.weights, contingencyTable.weights)/newTable.num_samples)
-    println(kl_divergence(contingencyTable.weights, newTable.weights)/newTable.num_samples)
+    println(kl_divergence(newTable.weights/newTable.num_samples, contingencyTable.weights/contingencyTable.num_samples))
+    println(kl_divergence(contingencyTable.weights/contingencyTable.num_samples, newTable.weights/newTable.num_samples))
     println()
 
 
@@ -339,7 +339,7 @@ function main6()
 
     contTable = readContingencyTable(nltcs[[:1, :2]], dimension)
 
-    number_of_samples = sum(contTable)#size(contTable)[1]
+    number_of_samples = Int64(sum(contTable))#size(contTable)[1]
 
     hist = Histogram(contTable, number_of_samples)
 
@@ -348,8 +348,8 @@ function main6()
     
     ## nltc
     println("nltcs")
-    Barak_et_al_algorithm(hist, queries, epsilons[1]/10)#epsilons[1])
-    println(run_test(hist, epsilons[1]/10, queries, number_of_samples, 10, false))
+    Barak_et_al_algorithm(hist, queries, epsilons[10]*5)#epsilons[1])
+    println(run_test(hist, epsilons[10]*5, queries, number_of_samples, 10, false))
     #mwem_errors = run_full_test(hist, queries, epsilons, number_of_tests, mwem_iterations)
     #write_results("nltcs_result_new.txt", mwem_errors, epsilons)
 

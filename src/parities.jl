@@ -54,8 +54,6 @@ function complete_way_marginals_indices(k::Int64, d::Int64)
         end
     end
 
-    println(length(idx))
-
     sort(collect(idx))
 end
 

@@ -46,6 +46,6 @@ end
 function kl_divergence_error(mw::MWState)
 
     #error = kl_divergence(mw.synthetic.weights, mw.real.weights)
-    error = kl_divergence(Histogram(mw.real).weights, Histogram(mw.synthetic).weights)
+    error = kl_divergence(mw.real.weights, mw.synthetic.weights)
     error
 end
