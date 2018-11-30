@@ -7,9 +7,10 @@ using
     Hadamard,
     LinearAlgebra,
     Random,
-    IterTools,#.subsets
-    Statistics
-    #Iterators.subsets
+    IterTools,
+    Statistics,
+    Distributed,
+    SharedArrays
 
 export
     mwem,
@@ -22,29 +23,29 @@ export
     RangeQuery,
     Parities,
     FactorParities,
+    Interval,
+    gosper,
+    BinaryItr,
+    
     maximum_error,
     kl_divergence_error,
-    kl_divergence,
     mean_squared_error,
     queriesMatrix,
-    gosper,
-    get_parities,
+
     evaluate,
     get,
-#    getLowerBound,
-    
-    normalize_hist!,
 
-    Interval,
-    get_query_vector_from_interval,
-    BinaryItr,
+    kl_divergence,
+    complete_way_marginals_indices,
     fourierCoefficients,
     calculateMarginal,
+    Marginals
+
+    get_query_vector_from_interval,
     hadamard_basis_vector
 
 import
     Base: eltype, length, iterate
-#Base: start, next, done, eltype, length
 
 include("interface.jl")
 include("histogram.jl")
@@ -55,7 +56,6 @@ include("BinaryIterator.jl")
 include("parities.jl")
 include("error.jl")
 include("mwem.jl")
-#include("MatrixMechanism.jl")
 
 """
     PrivateMultiplicativeWeights

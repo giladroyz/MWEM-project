@@ -17,7 +17,7 @@ num_samples = 1000
 domain_size = 100
 samples = rand(d_continuous, num_samples)
 
-function histogram_from_sample(samples, num_bins)
+function histogram_from_samples(samples, num_bins)
     @assert 0 <= minimum(samples)
     @assert maximum(samples) <= 1
     h = zeros(num_bins)
@@ -28,7 +28,7 @@ function histogram_from_sample(samples, num_bins)
     collect(1:num_bins)/num_bins, h
 end
 
-xs, ys = histogram_from_sample(samples, domain_size)
+xs, ys = histogram_from_samples(samples, domain_size)
 bar(xs, ys, width=1/domain_size);
 #gui()
 

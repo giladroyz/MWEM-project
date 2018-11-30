@@ -2,7 +2,7 @@
     RangeQuery
 
 Range query is a type of histogram query corresponding to an
-intervals over the domain i -> j (1 <= i <= j <= domain).
+intervals over the domain. i -> j (1 <= i <= j <= domain).
 """
 struct RangeQuery <: Query
     interval::Interval
@@ -38,10 +38,8 @@ Return 0/1 indicator vector for the interval in the size of the domain.
 function get_query_vector_from_interval(interval::Interval, domain::Int64)
     query_vector = zeros(domain)
     start_index, end_index = interval
-    #print(start_index, end_index)
     query_vector[start_index : end_index] .= 1
     query_vector
-    #println(query_vector)
 end
 
 """
@@ -105,9 +103,9 @@ Evaluate all range queries on the given histogram.
 function evaluate(queries::SeriesRangeQueries, h::Histogram)
     @assert queries.domain == length(h.weights)
     answers = zeros(Float64, queries.domain)
-    running_sum = 0#-1.0
+    running_sum = 0
     @simd for j=1:queries.domain
-        @inbounds running_sum += h.weights[j]#2.0 * h.weights[j]
+        @inbounds running_sum += h.weights[j]
         @inbounds answers[j] = running_sum
     end
     answers
@@ -122,16 +120,4 @@ function queriesMatrix(queries::SeriesRangeQueries)
         end
     end
     query_matrix
-end
-
-function evaluate2(queries::SeriesRangeQueries, h::Histogram)
-    @assert queries.domain == length(h.weights)
-    answers = Array{Float64}(queries.domain)
-    #println(queries)
-    running_sum = 0#-1.0
-    @simd for j=1:queries.domain
-        @inbounds running_sum += h.weights[j]
-        @inbounds answers[j] = running_sum
-    end
-    answers
 end

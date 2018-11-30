@@ -85,13 +85,13 @@ function run_full_test(data::DataFrames.DataFrame, epsilons::Array{Float64}, num
     number_of_samples = size(data)[1]
 
     # Tuple with length = number of columns, and eaxh entry has the number of elements in the column
-    domain_dim = getDomainDim2(data)
+    domain_dim = getDomainDimByMax(data)
 
     # the normalized data in a matrix
     data_matrix = covertData(data)
 
     # the 1-D histogram of the elements of the domain in the dataset
-    xs, ys = histogram_from_sample(data_matrix, domain_dim)
+    xs, ys = histogram_from_samples(data_matrix, domain_dim)
 
     mwem_errors = zeros(length(epsilons), number_of_tests) # the error vector of mwem
     svd_errors = zeros(length(epsilons), number_of_tests) # the error vector of svd
@@ -126,13 +126,13 @@ function optimize_range_queries(data::DataFrames.DataFrame, epsilons::Array{Floa
     number_of_samples = size(data)[1]
 
     # Tuple with length = number of columns, and eaxh entry has the number of elements in the column
-    domain_dim = getDomainDim2(data)
+    domain_dim = getDomainDimByMax(data)
 
     # the normalized data in a matrix
     data_matrix = covertData(data)
 
     # the 1-D histogram of the elements of the domain in the dataset
-    xs, ys = histogram_from_sample(data_matrix, domain_dim)
+    xs, ys = histogram_from_samples(data_matrix, domain_dim)
 
     range_queries = generate_random_range_queries(number_of_queries, prod(domain_dim))
 
@@ -221,7 +221,7 @@ function main()
     ## Adult: capital loss
     println("Adult: capital loss")
     dataset =adult[[:12]]
-    #println(getDomainDim2(dataset))
+    #println(getDomainDimByMax(dataset))
     (mwem_errors, svd_errors) = run_full_test(dataset, epsilons, number_of_tests, number_of_queries, mwem_iterations)
     write_results("Adult_capitalloss.txt", mwem_errors, svd_errors, epsilons)
 

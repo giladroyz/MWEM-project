@@ -20,21 +20,21 @@ Now the indices of the 1's are the number itself with those indices
 function BinaryItr(d::Int64, indices::Int64, init_value::Int64 = 0)
     @assert 0 < d <= 62
 
-    arr_inx = []
-    #one_index = 1
+    # arr_inx = []
 
-    for i=1:d
-        if indices == 0
-            break
-        end
-        if indices%2 == 1
-            push!(arr_inx, i)
-            #one_index += 1
-        end
-        indices >>= 1
-    end
+    # for i=1:d
+    #     if indices == 0
+    #         break
+    #     end
+    #     if indices%2 == 1
+    #         push!(arr_inx, i)
+    #     end
+    #     indices >>= 1
+    # end
 
-    BinaryIndexIterator(d, Array{Int64}(arr_inx), init_value)
+    _, arr_idx = norm_1_with_indices(indices)
+
+    BinaryIndexIterator(d, Array{Int64}(arr_idx), init_value)
 end
 
 const BinaryIndexState = Int64
@@ -70,4 +70,46 @@ function iterate(it::BinaryIndexIterator, state::BinaryIndexState = start(it))
 
     return sub_binary_number, state
 
+end
+
+"""
+Calculate the norm1 of binary number (the number of 1's in the number).
+return: -norm1(alpha)
+        -array with the indices of the 1's
+"""
+function norm_1_with_indices(alpha::Int64)
+
+    @assert alpha >= 0
+
+    count = 0
+    index = 1
+    idx = []
+    while alpha > 0
+        if alpha % 2 == 1
+            count += 1
+            push!(idx, index)
+        end
+        alpha >>= 1
+        index += 1
+    end
+    count, Array{Int64}(idx)
+end
+
+"""
+Calculate the norm1 of binary number (the number of 1's in the number).
+return: -norm1(alpha)
+        -array with the indices of the 1's
+"""
+function norm_1(alpha::Int64)
+
+    @assert alpha >= 0
+
+    count = 0
+    while alpha > 0
+        if alpha % 2 == 1
+            count += 1
+        end
+        alpha >>= 1
+    end
+    count
 end

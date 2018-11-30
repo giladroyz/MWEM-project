@@ -9,14 +9,16 @@ Returns MWParameters with default settings where not specified.
 * `repetitions::Integer=10`: Repeatedly update with previously selected queries.
 * `noisy_init::Boolean=false`: Initialize with noisy histogram if true.
 * `verbose::Boolean=false`: Print timing and error information (not private)
+* `init_budget=0.05: fraction of the epsilon for the noisy initialization
+* `noisy_max_budget: fraction of the badget from every step for for the noisy max
 """
 function MWParameters(; epsilon=1.0,
                         iterations=10,
                         repetitions=10,
                         noisy_init=false,
                         verbose=false,
-                        init_budget=0.05, #
-                        noisy_max_budget=0.5 #
+                        init_budget=0.05,
+                        noisy_max_budget=0.5
                         )
     MWParameters(epsilon, iterations, repetitions, noisy_init, verbose, init_budget, noisy_max_budget)
 end
@@ -84,8 +86,10 @@ function mwem(queries::Queries, data::Data, ps=MWParameters())
         end
 
         if ps.verbose
-            error = mean_squared_error(mwstate)
-            @printf("%d\t %.3f\t\t %.3f\n", t, error, time)
+            error_mean = mean_squared_error(mwstate)
+            error_max = maximum_error(mwstate)
+            @printf("itr: %d\t mean_error: %.3f\t\t %.3f\n", t, error_mean, time)
+            @printf("itr: %d\t max_error: %.3f\t\t %.3f\n", t, error_max, time)
         end
     end
 

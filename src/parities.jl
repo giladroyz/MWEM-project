@@ -3,6 +3,14 @@
 
 Implementation of parity queries using Fast Hadamard Walsh Transform and Gosper
 iteration.
+
+Releasing privacy prserving marginals for contingency table.
+The measurments in this case are not the marginals, but the fourier coefficients of the contingency table,
+that are sufficient for recovering the marginals.
+
+Details can be found in:
+"B. Barak, K. Chaudhuri, C. Dwork, S. Kale,F. McSherry, and K. Talwar. 
+Privacy, accuracy, and consistency too: a holistic solution to contingency table release. In PODS, 2007."
 """
 struct Parities <: Queries
     dimension::Int
@@ -27,72 +35,49 @@ function hadamard_basis_vector(index::Int, dimension::Int)
     hadamard
 end
 
-function Parities(dimension, order)
-    idx = [1]
-    for r = 1:order
-        for s = gosper(dimension, r)
-            push!(idx, s+1)
+"""
+return the downward closure of all the incides of the k-way marginals, of dimension d.
+
+# Example:
+    k = 2, d = 4
+    k-way indices= [0011, 0101, 0110, 1001, 1010, 1100]
+    downward_closure(0011) = [0000, 0001, 0010, 0011]
+"""
+function complete_way_marginals_indices(k::Int64, d::Int64)
+    
+    idx = Set(zeros(Int64, 0))
+    
+    for s = gosper(d, k)
+        for alpha in BinaryItr(d, s)
+            temp = alpha + 1
+            push!(idx, temp)
         end
     end
-    Parities(dimension, order, idx)
+
+    println(length(idx))
+
+    sort(collect(idx))
+end
+
+
+function Parities(dimension, order)
+    Parities(dimension, order, complete_way_marginals_indices(order, dimension))
 end
 
 function get(queries::Parities, i::Int)
     HistogramQuery(hadamard_basis_vector(queries.idx[i]-1, queries.dimension))
 end
 
-function get_parities(queries::Parities, i::Int)
-    HistogramQuery(hadamard_basis_vector(queries.idx[i]-1, queries.dimension))
-end
-
+"""
+evaluate the measurements of the linear queries defined by 
+queries.idx (the indices needed for calculating the marginals of the contingency table)
+"""
 function evaluate(queries::Parities, h::Histogram)
     2^queries.dimension * fwht_natural(h.weights)[queries.idx]
 end
 
 function fourierCoefficients(queries::Parities, h::Histogram)
     2^queries.dimension * fwht_natural(h.weights)
-end
-
-"""
-Calculate the norm1 of binary number (the number of 1's in the number).
-return: -norm1(alpha)
-        -array with the indices of the 1's
-"""
-function norm_1_with_indices(alpha::Int64)
-
-    @assert alpha >= 0
-
-    count = 0
-    index = 1
-    idx = []
-    while alpha > 0
-        if alpha % 2 == 1
-            count += 1
-            push!(idx, index)
-        end
-        alpha >>= 1
-        index += 1
-    end
-    count, Array{Int64}(idx)
-end
-
-"""
-Calculate the norm1 of binary number (the number of 1's in the number).
-return: -norm1(alpha)
-        -array with the indices of the 1's
-"""
-function norm_1(alpha::Int64)
-
-    @assert alpha >= 0
-
-    count = 0
-    while alpha > 0
-        if alpha % 2 == 1
-            count += 1
-        end
-        alpha >>= 1
-    end
-    count
 end
 
 """
@@ -117,6 +102,10 @@ function fourierMarginal(dimension::Int64, beta::Int64, alpha::Int64)
     marginal
 end
 
+"""
+Calculate the marginal C_beta : R^(2^d) -> R^(2^(norm1(beta))), for beta in {0,1}^d, 
+of the contingencyTable (represent as histogram).
+"""
 function calculateMarginal(queries::Parities, h::Histogram, beta::Int64)
 
     beta_norm1, beta_indices = norm_1_with_indices(beta)
@@ -130,6 +119,17 @@ function calculateMarginal(queries::Parities, h::Histogram, beta::Int64)
     end
 
     marginal/(2^queries.dimension)
+end
+
+function Marginals(queries::Parities, h::Histogram)
+
+    marginals = []
+
+    for beta in queries.idx
+        push!(marginals, calculateMarginal(queries, h, beta))
+    end
+
+    marginals
 end
 
 function initialize(queries::Parities, data::Tabular, ps::MWParameters)
@@ -157,7 +157,7 @@ function restrict(q::FactorParity, attributes::Array{Int, 1})
     idx = 0
     d = length(attributes)
     for a in q.attributes
-        i = findfirst(x -> x==a, attributes)#findfirst(attributes, a)
+        i = findfirst(x -> x==a, attributes)
         idx += 2^(d-i)
     end
     HistogramQuery(hadamard_basis_vector(idx, d))

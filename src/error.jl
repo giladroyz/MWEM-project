@@ -5,7 +5,7 @@ Compute maximum error of synthetic data on the query set. Result is not
 differentially private.
 """
 function maximum_error(mw::MWState)
-    maximum(abs(evaluate(mw.queries, mw.synthetic) - mw.real_answers))
+    norm(evaluate(mw.queries, mw.synthetic) - mw.real_answers, Inf)
 end
 
 """
@@ -46,6 +46,6 @@ end
 function kl_divergence_error(mw::MWState)
 
     #error = kl_divergence(mw.synthetic.weights, mw.real.weights)
-    error = kl_divergence(mw.real.weights, mw.synthetic.weights)
+    error = kl_divergence(Histogram(mw.real).weights, Histogram(mw.synthetic).weights)
     error
 end

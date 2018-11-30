@@ -1,4 +1,4 @@
-include("DataAccessibility.jl")
+include("../examples/DataAccessibility.jl")
 push!(LOAD_PATH, abspath("./src/"))
 #include(abspath("./src/parities.jl"))
 
@@ -40,13 +40,13 @@ function downwordClosure(binaryNumbers, dimension)
         end
     end
 
-    collect(downwordClosure)# + ones(Int64, length(downwordClosure))
+    collect(downwordClosure)
 
 end
 
 function Barak_et_al_algorithm(contingencyTable::Histogram, queries::Parities, epsilon::Float64)
 
-    downwordClosure = downwordClosure(queries.idx, queries.dimension)
+    downClosure = downwordClosure(queries.idx, queries.dimension)
 
     queries_old = queries
 
@@ -64,17 +64,18 @@ function Barak_et_al_algorithm(contingencyTable::Histogram, queries::Parities, e
     a = zeros(Float64, 2^queries.dimension)
 
     for i in 1:length(queries.idx)
-        a += get_parities(queries, i).weights*(noisyFourierCoeffs[i]-fourierCoeffs[i])
+        a += get(queries, i).weights*(noisyFourierCoeffs[i]-fourierCoeffs[i])
     end
 
     newTable.weights += a/2^(queries.dimension/2)
     newTable.weights = Array{Float64}([max(x,0) for x in newTable.weights])
 
-    println(contingencyTable.weights[1:10])
-    println(newTable.weights[1:10])
+    #println(contingencyTable.weights[1:10])
+    #println(newTable.weights[1:10])
 
     println(kl_divergence(newTable.weights, contingencyTable.weights)/newTable.num_samples)
     println(kl_divergence(contingencyTable.weights, newTable.weights)/newTable.num_samples)
+    println()
 
 
 
@@ -203,7 +204,7 @@ function main3()
     mwem_iterations = 10
     number_of_tests = 10
 
-    domain_dim = getDomainDim2(data)
+    domain_dim = getDomainDimByMax(data)
 
     data_matrix = covertData(data)
 
@@ -343,10 +344,12 @@ function main6()
     hist = Histogram(contTable, number_of_samples)
 
     queries = Parities(dimension, order)
+    a = downwordClosure(queries.idx, queries.dimension)
     
     ## nltc
     println("nltcs")
     Barak_et_al_algorithm(hist, queries, epsilons[1]/10)#epsilons[1])
+    println(run_test(hist, epsilons[1]/10, queries, number_of_samples, 10, false))
     #mwem_errors = run_full_test(hist, queries, epsilons, number_of_tests, mwem_iterations)
     #write_results("nltcs_result_new.txt", mwem_errors, epsilons)
 
