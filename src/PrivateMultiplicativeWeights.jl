@@ -10,7 +10,6 @@ using
     IterTools,
     Statistics,
     Distributed,
-    SharedArrays
 
 export
     mwem,
